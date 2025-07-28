@@ -30,7 +30,7 @@ jobs:
               sudo git remote add origin https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
             fi
             
-            # Pull latest changes
+            
             sudo git fetch
             sudo git reset --hard origin/main
             
