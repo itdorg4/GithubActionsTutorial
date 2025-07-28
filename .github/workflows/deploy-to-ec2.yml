@@ -18,33 +18,31 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Set fail-fast and error handling
             set -euo pipefail
-            
             REPO_DIR="/var/www/itdefined.com"
             GIT_REPO="https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git"
+            
+            # Fix Git ownership issue
+            sudo git config --global --add safe.directory "$REPO_DIR"
             
             if [ ! -d "$REPO_DIR/.git" ]; then
               echo "🔄 Fresh clone needed"
               sudo mkdir -p "$REPO_DIR"
               sudo git clone "$GIT_REPO" "$REPO_DIR"
+              sudo chown -R ${{ secrets.SSH_USERNAME }}:www-data "$REPO_DIR"
             else
               echo "♻️ Updating existing repo"
               cd "$REPO_DIR"
-              sudo git remote set-url origin "$GIT_REPO"
-              sudo git fetch --all
-              sudo git reset --hard origin/main
-              sudo git clean -fd
+              sudo chown -R ${{ secrets.SSH_USERNAME }}:www-data "$REPO_DIR"
+              git remote set-url origin "$GIT_REPO"
+              git fetch --all
+              git reset --hard origin/main
+              git clean -fd
             fi
             
-            # Fix permissions
-            echo "🔒 Setting permissions"
+            # Final permissions
             sudo chown -R www-data:www-data "$REPO_DIR"
             sudo find "$REPO_DIR" -type d -exec chmod 755 {} \;
             sudo find "$REPO_DIR" -type f -exec chmod 644 {} \;
-            
-            # Restart web server
-            echo "🚀 Restarting nginx"
             sudo systemctl restart nginx
-            
             echo "✅ Deployment complete!"
