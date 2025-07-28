@@ -1,0 +1,35 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [main]
+    
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy files via SSH
+        uses: easingthemes/ssh-deploy@v2.2.11
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.SSH_HOST }}
+          REMOTE_USER: ${{ secrets.SSH_USERNAME }}
+          SOURCE: "./"  # Deploys all repository files
+          TARGET: "/var/www/itdefined.com/"
+          ARGS: "-rltgoDzvO --delete"  # rsync arguments for mirroring
+          PRE_SCRIPTS: |
+            echo "Cleaning target directory..."
+            sudo rm -rf /var/www/itdefined.com/*
+          POST_SCRIPTS: |
+            echo "Setting permissions..."
+            sudo chown -R www-data:www-data /var/www/itdefined.com
+            sudo find /var/www/itdefined.com -type d -exec chmod 755 {} \;
+            sudo find /var/www/itdefined.com -type f -exec chmod 644 {} \;
+            echo "Restarting nginx..."
+            sudo systemctl restart nginx
+            echo "Deployment complete!"
