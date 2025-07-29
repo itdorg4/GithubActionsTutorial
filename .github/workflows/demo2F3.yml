@@ -1,0 +1,51 @@
+name: List and View Artifacts
+
+on:
+  workflow_dispatch:
+
+jobs:
+  list-and-cat-artifacts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install GitHub CLI and unzip
+        run: |
+          sudo apt-get update
+          sudo apt install gh unzip -y
+
+      - name: List, Download, Unzip, and Cat Each Artifact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GITHUB_TOKEN or your custom GH_TOKEN
+        run: |
+          mkdir artifacts
+          cd artifacts
+          echo "🔍 Fetching artifact list..."
+
+          # Get artifact info as JSON
+          gh api repos/${{ github.repository }}/actions/artifacts --jq '.artifacts[]' > artifacts.json
+
+          ARTIFACT_COUNT=$(jq length < artifacts.json)
+          echo "📦 Found $ARTIFACT_COUNT artifacts."
+
+          for row in $(jq -c '.' artifacts.json); do
+            NAME=$(echo "$row" | jq -r '.name')
+            ID=$(echo "$row" | jq -r '.id')
+
+            echo "⬇️ Downloading $NAME (ID: $ID)..."
+            gh api -H "Accept: application/vnd.github+json" \
+              -H "Authorization: token $GH_TOKEN" \
+              -X GET \
+              -o "$NAME.zip" \
+              /repos/${{ github.repository }}/actions/artifacts/$ID/zip
+
+            echo "📂 Unzipping $NAME.zip..."
+            mkdir "$NAME"
+            unzip -qq "$NAME.zip" -d "$NAME"
+
+            echo "📄 Contents of $NAME:"
+            for file in $(find "$NAME" -type f); do
+              echo "---- File: $file ----"
+              cat "$file"
+              echo ""
+            done
+          done
