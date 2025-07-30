@@ -1,5 +1,5 @@
 name: Combined Inputs, Env, Secrets, and Variables
-
+run-name: Combined Inputs, Env, Secrets, and Variables
 on:
   workflow_dispatch:
     inputs:
