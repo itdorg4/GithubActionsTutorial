@@ -29,3 +29,4 @@ jobs:
           echo "Workspace Directory: ${{ github.workspace }}"
           echo "Action Path: ${{ github.action_path }}"
           echo "Event JSON: ${{ github.event }}"
+          cat "${{ github.event_path }}"
