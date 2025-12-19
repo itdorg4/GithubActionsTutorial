@@ -1,9 +1,7 @@
 # This workflow demonstrates continuing execution even if a job fails in GitHub Actions.
 name: Continue on Failure
 
-on:
-  push:
-        branches: [ some-branch ]
+on: workflow_dispatch
 
 jobs:
   job1:
