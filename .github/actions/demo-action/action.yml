@@ -13,10 +13,11 @@ runs:
   using: 'composite'
   steps:
     - name: Run demo command
+      id: set_output
       run: echo "Hello, ${{ inputs.name }}!"
       shell: bash
-    - id: set_output
-      name: Set output
+    
+    - name: Set output
       run: |
         echo "result=Action executed successfully" >> $GITHUB_OUTPUT
       shell: bash
