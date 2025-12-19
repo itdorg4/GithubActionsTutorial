@@ -3,8 +3,6 @@
 name: Demo - Using Reusable Workflow
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
     inputs:
       node_version:
@@ -31,6 +29,8 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.call-reusable-workflow.outputs.build-status == 'success'
     steps:
+      - name: Run Demo Custom Action
+        uses: ./.github/actions/demo-action
       - name: Deploy to demo environment
         run: |
           echo "Deployment started..."
